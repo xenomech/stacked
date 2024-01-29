@@ -1,19 +1,22 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { getServerSession, type NextAuthOptions } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
-
 import { db } from "@/server/db";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { NextAuthOptions, getServerSession } from "next-auth";
+import GitHubProvider from "next-auth/providers/github";
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: PrismaAdapter(db),
+  pages: {
+    signIn: "/auth/login",
+  },
   providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID as string,
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
-    session: ({ session, user }) => ({
+    session: ({ user, session }) => ({
       ...session,
       user: {
         ...session.user,
@@ -21,6 +24,6 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   },
-};
+} satisfies NextAuthOptions;
 
 export const getServerAuthSession = () => getServerSession(authOptions);
